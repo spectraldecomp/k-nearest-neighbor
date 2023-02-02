@@ -1,33 +1,19 @@
 import numpy as np
-from sklearn import datasets
-from sklearn.model_selection import train_test_split
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.colors import ListedColormap
 from kNN import KNN
 
-
-# cmap = ListedColormap(['#FF0000','#00FF00','#0000FF'])
-# iris = datasets.load_iris()
-# X, y = iris.data, iris.target
-# X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=1234)
-# plt.figure()
-# plt.scatter(X[:,2],X[:,3], c=y, cmap=cmap, edgecolor='k', s=20)
-# plt.show()
-
-# clf = KNN(k=5)
-# clf.fit(X_train, y_train)
-# predictions = clf.predict(X_test)
-# acc = np.sum(predictions == y_test) / len(y_test)
-# print(acc)
 class Test:
     def __init__(self, data_name="labeled-examples.txt"):
+        self.Testing_Data = None
         self.Testing_Labels = None
         self.Training_Labels = None
         self.Training_Data = None
         self.data = None
         self.data_name = data_name
 
+    # imports data, reads in from text file in format: [class, x, y, name]
     def import_data(self):
         dummyData = open(self.data_name, "r")
         data_raw = dummyData.readlines()
@@ -35,7 +21,38 @@ class Test:
         self.Training_Data = [[float(self.data[i][1]), float(self.data[i][2])] for i in range(len(self.data))]
         self.Training_Labels = [self.data[i][0] for i in range(len(self.data))]
         self.Testing_Labels = self.Training_Labels
+        self.Testing_Data = self.Training_Data
 
+    # Splits data set into N chunks. Loops and selects each chunk to be test data and lets rest of data be the training
+    # data. Runs algorithm on both training and test data and calculates average accuracy.
+    def cross_validation(self, N=5, k_value=5):
+        chunk_length = len(self.Training_Data) // N
+        acc_train = 0
+        acc_test = 0
+        for j in range(N):
+            chunks_Training_Data = [self.Training_Data[i:i + chunk_length] for i in range(0, len(self.Training_Data), chunk_length)]
+            chunks_Training_Labels = [self.Training_Labels[i:i + chunk_length] for i in range(0, len(self.Training_Labels), chunk_length)]
+            self.Testing_Data = chunks_Training_Data[j]
+            self.Testing_Labels = chunks_Training_Labels[j]
+            new_Training_Data = []
+            new_Training_Labels = []
+            for k, chunk in enumerate(chunks_Training_Data):
+                if k != j:
+                    new_Training_Data.extend(chunk)
+                    new_Training_Labels.extend(chunks_Training_Labels[k])
+            pred_train, pred_test = self.classify(new_Training_Data, new_Training_Labels, self.Testing_Data, self.Testing_Labels, k_value)
+            count = 0
+            for i in range(len(pred_train)):
+                count += (pred_train[i] == self.Training_Labels[i])
+            acc_train += (count / len(pred_train))
+
+            count = 0
+            for i in range(len(pred_test)):
+                count += (pred_test[i] == self.Testing_Labels[i])
+            acc_test += (count / len(pred_test))
+        return acc_train / N, acc_test / N
+
+    # Plots data
     def plot_data(self):
         classification = [int(point[0]) for point in self.data]
         colors = cm.rainbow([classw / max(classification) for classw in classification])
@@ -44,17 +61,16 @@ class Test:
         plt.scatter(x_coords, y_coords, c=colors)
         plt.show()
 
-    def classify(self):
-        clf = KNN(k=31)
-        clf.fit(self.Training_Data, self.Training_Labels, True)
-        predictions = clf.predict(self.Training_Data, self.Testing_Labels, True)
-        count = 0
-        for i in range(len(predictions)):
-            count += (predictions[i] == self.Testing_Labels[i])
-        accuracy = count / len(predictions)
-        print(accuracy)
+    # Calls KNN Algorithm
+    def classify(self, Training_Data, Training_Labels, Testing_Data, Testing_Labels, k_value):
+        clf = KNN(k_value)
+        clf.fit(Training_Data, Training_Labels, True)
+        predictions_train = clf.predict(Training_Data, Training_Labels, True)
+        predictions_test = clf.predict(Testing_Data, Testing_Labels, True)
+        return predictions_train, predictions_test
 
-test = Test()
-test.import_data()
-test.plot_data()
-test.classify()
+
+x = Test()
+x.import_data()
+x.plot_data()
+print(x.cross_validation())
