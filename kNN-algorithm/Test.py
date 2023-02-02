@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 from matplotlib.colors import ListedColormap
 from kNN import KNN
+import random
 
 class Test:
     def __init__(self, data_name="labeled-examples.txt"):
@@ -18,6 +19,7 @@ class Test:
         dummyData = open(self.data_name, "r")
         data_raw = dummyData.readlines()
         self.data = [line.split() for line in data_raw]
+        random.shuffle(self.data)
         self.Training_Data = [[float(self.data[i][1]), float(self.data[i][2])] for i in range(len(self.data))]
         self.Training_Labels = [self.data[i][0] for i in range(len(self.data))]
         self.Testing_Labels = self.Training_Labels
@@ -41,9 +43,11 @@ class Test:
                     new_Training_Data.extend(chunk)
                     new_Training_Labels.extend(chunks_Training_Labels[k])
             pred_train, pred_test = self.classify(new_Training_Data, new_Training_Labels, self.Testing_Data, self.Testing_Labels, k_value)
+
             count = 0
             for i in range(len(pred_train)):
-                count += (pred_train[i] == self.Training_Labels[i])
+                count += (pred_train[i] == new_Training_Labels[i])
+            print(count / len(pred_train))
             acc_train += (count / len(pred_train))
 
             count = 0
@@ -73,4 +77,4 @@ class Test:
 x = Test()
 x.import_data()
 x.plot_data()
-print(x.cross_validation())
+print(x.cross_validation(5))
