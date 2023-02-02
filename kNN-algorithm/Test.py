@@ -28,9 +28,8 @@ Training_Labels = [data[i][0] for i in range(len(data))]
 Testing_Labels = Training_Labels
 
 clf = KNN(k=5)
-clf.fit(Training_Data, Training_Labels)
-predictions = clf.predict(Training_Data)
-
+clf.fit(Training_Data, Training_Labels, False)
+predictions = clf.predict(Training_Data, Testing_Labels, False)
 count = 0
 for i in range(len(predictions)):
     count += (predictions[i] == Testing_Labels[i])

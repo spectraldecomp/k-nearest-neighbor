@@ -19,8 +19,8 @@ class KNN:
 
     # Load training data and labels into model, selects the variation
     def fit(self, Training_Data, Training_Labels, variation):
-        if variation: fit_all(Training_Data, Training_Labels)
-        else: fit_errors(Training_Data, Training_Labels)
+        if variation: self.fit_all(Training_Data, Training_Labels)
+        else: self.fit_errors(Training_Data, Training_Labels)
 
     # Stores each training instance in the model
     def fit_all(self, Training_Data, Training_Labels):
@@ -28,14 +28,14 @@ class KNN:
         self.Training_Labels = Training_Labels
 
     def fit_errors(self, Training_Data, Training_Labels):
-            self.label_dict = defaultdict(list)
-            for i, label in enumerate(Training_Labels):
-                if len(label_dict[label]) < k:
-                    label_dict[label].append(Training_Data[i])
+        self.label_dict = defaultdict(list)
+        for i, label in enumerate(Training_Labels):
+            if len(self.label_dict[label]) < self.k:
+                self.label_dict[label].append(Training_Data[i])
 
     def predict(self, Testing_Data, Testing_Labels, variation):
-        if variation: predict_all(Testing_Data)
-        else: predict_errors(Testing_Data, Testing_Labels)
+        if variation: return self.predict_all(Testing_Data)
+        else: return self.predict_errors(Testing_Data, Testing_Labels)
 
     # Runs helper function predicth for each value in our testing data. Gets prediction for each,
     # saved in a list
@@ -48,14 +48,17 @@ class KNN:
         for i, x in enumerate(Testing_Data):
             predictions.append(self.predicth_errors(x))
             if self.predicth_errors(x) != Testing_Labels[i]:
-                label_dict[Testing_Labels[i]].append(x)
+                self.label_dict[Testing_Labels[i]].append(x)
         return predictions
 
     def predicth_errors(self, x):
-        distances = [(distance(x, training_data), label) for label, training_data in label_dict.items()]
+        distances = []
+        for label, training_data in self.label_dict.items():
+            for train in training_data:
+                distances.append((distance(x, train), label))
         distances.sort(key=lambda x: x[0])
         labels = [label for _, label in distances]
-        most_common = Counter(labels[:k]).most_common()
+        most_common = Counter(labels[:self.k]).most_common()
         return most_common[0][0]
 
 
