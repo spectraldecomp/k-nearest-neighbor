@@ -16,7 +16,6 @@ class KNN:
 
     def __init__(self, k=5):
         self.k = k
-
     # Load training data and labels into model, selects the variation
     def fit(self, Training_Data, Training_Labels, variation):
         if variation: self.fit_all(Training_Data, Training_Labels)
