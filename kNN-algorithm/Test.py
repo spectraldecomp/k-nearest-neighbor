@@ -25,6 +25,15 @@ class Test:
         self.Testing_Labels = self.Training_Labels
         self.Testing_Data = self.Training_Data
 
+    def import_data_iris(self):
+        dummyData = open(self.data_name, "r")
+        data_raw = dummyData.readlines()
+        self.data = [line.split(",") for line in data_raw]
+        random.shuffle(self.data)
+        self.Training_Data = [[float(self.data[i][0]), float(self.data[i][1]), float(self.data[i][2]), float(self.data[i][3])] for i in range(len(self.data))]
+        self.Training_Labels = [self.data[i][4] for i in range(len(self.data))]
+        self.Testing_Labels = self.Training_Labels
+        self.Testing_Data = self.Training_Data
     # Splits data set into N chunks. Loops and selects each chunk to be test data and lets rest of data be the training
     # data. Runs algorithm on both training and test data and calculates average accuracy.
     def cross_validation(self, N=5, k_value=5):
@@ -47,14 +56,13 @@ class Test:
             count = 0
             for i in range(len(pred_train)):
                 count += (pred_train[i] == new_Training_Labels[i])
-            print(count / len(pred_train))
             acc_train += (count / len(pred_train))
 
             count = 0
             for i in range(len(pred_test)):
                 count += (pred_test[i] == self.Testing_Labels[i])
             acc_test += (count / len(pred_test))
-        return acc_train / N, acc_test / N
+        return [acc_train / N, acc_test / N]
 
     # Plots data
     def plot_data(self):
@@ -74,7 +82,8 @@ class Test:
         return predictions_train, predictions_test
 
 
-x = Test()
-x.import_data()
-x.plot_data()
-print(x.cross_validation(5))
+x = Test("bezdekIris.data")
+x.import_data_iris()
+for j in range(1, 100, 2):
+    gaming = x.cross_validation(k_value=j)
+    print(gaming[0],",", gaming[1])
